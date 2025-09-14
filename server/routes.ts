@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCompanySchema, insertUserPreferencesSchema } from "@shared/schema";
+import { insertCompanySchema, insertUserPreferencesSchema } from "../shared/schema";
 import { fetchStockData, convertToInsertCompany } from "./services/yahooFinance";
 import { z } from "zod";
 
