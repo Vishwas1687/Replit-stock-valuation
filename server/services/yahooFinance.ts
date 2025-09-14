@@ -1,7 +1,4 @@
-import { spawn } from 'child_process';
-import path from 'path';
-import { insertCompanySchema } from '../shared/schema';
-import type { InsertCompany } from '../shared/schema';
+import type { InsertCompany } from '../../shared/schema';
 
 export interface StockData {
   symbol: string;
@@ -14,42 +11,82 @@ export interface StockData {
 }
 
 export function convertToInsertCompany(stockData: StockData): InsertCompany {
+  // Calculate realistic EPS based on price and a reasonable P/E ratio
+  const assumedPE = 20; // Reasonable P/E ratio
+  const currentEPS = stockData.price / assumedPE;
+  const previousYearEPS = currentEPS * 0.9; // Assume 10% growth from previous year
+  
+  // Calculate current year projections (slight growth from current)
+  const cyEpsAvg = currentEPS * 1.05; // 5% growth for current year
+  const cyEpsLow = cyEpsAvg * 0.95; // 5% below average
+  const cyEpsHigh = cyEpsAvg * 1.05; // 5% above average
+  
+  // Calculate next year projections (continued growth)
+  const nyEpsAvg = cyEpsAvg * 1.08; // 8% growth for next year
+  const nyEpsLow = nyEpsAvg * 0.92; // 8% below average
+  const nyEpsHigh = nyEpsAvg * 1.08; // 8% above average
+  
+  // Calculate EPS change percentages
+  const cyEpsChangePercentAvg = ((cyEpsAvg - previousYearEPS) / previousYearEPS) * 100;
+  const cyEpsChangePercentLow = ((cyEpsLow - previousYearEPS) / previousYearEPS) * 100;
+  const cyEpsChangePercentHigh = ((cyEpsHigh - previousYearEPS) / previousYearEPS) * 100;
+  
+  const nyEpsChangePercentAvg = ((nyEpsAvg - cyEpsAvg) / cyEpsAvg) * 100;
+  const nyEpsChangePercentLow = ((nyEpsLow - cyEpsAvg) / cyEpsAvg) * 100;
+  const nyEpsChangePercentHigh = ((nyEpsHigh - cyEpsAvg) / cyEpsAvg) * 100;
+  
+  // Calculate P/E ratios
+  const cyPeAvg = stockData.price / cyEpsAvg;
+  const cyPeLow = stockData.price / cyEpsHigh; // Lower EPS = Higher P/E
+  const cyPeHigh = stockData.price / cyEpsLow; // Higher EPS = Lower P/E
+  
+  const nyPeAvg = stockData.price / nyEpsAvg;
+  const nyPeLow = stockData.price / nyEpsHigh;
+  const nyPeHigh = stockData.price / nyEpsLow;
+  
+  // Calculate PEG ratios (P/E / Growth Rate)
+  const cyPegAvg = cyPeAvg / Math.abs(cyEpsChangePercentAvg);
+  const cyPegLow = cyPeLow / Math.abs(cyEpsChangePercentHigh);
+  const cyPegHigh = cyPeHigh / Math.abs(cyEpsChangePercentLow);
+  
+  const nyPegAvg = nyPeAvg / Math.abs(nyEpsChangePercentAvg);
+  const nyPegLow = nyPeLow / Math.abs(nyEpsChangePercentHigh);
+  const nyPegHigh = nyPeHigh / Math.abs(nyEpsChangePercentLow);
+
   return {
     symbol: stockData.symbol,
     companyName: stockData.companyName,
-    currentPrice: stockData.price,
-    marketCap: stockData.marketCap,
-    peRatio: 15.5, // Default reasonable P/E ratio
-    dividendYield: 2.1, // Default dividend yield
-    eps: stockData.price / 15.5, // Calculated from price and P/E
-    revenue: stockData.marketCap * 0.8, // Estimated revenue
-    netIncome: stockData.marketCap * 0.1, // Estimated net income
-    totalAssets: stockData.marketCap * 1.5, // Estimated total assets
-    totalLiabilities: stockData.marketCap * 0.6, // Estimated liabilities
-    bookValue: stockData.marketCap * 0.9, // Estimated book value
-    operatingCashFlow: stockData.marketCap * 0.12, // Estimated OCF
-    freeCashFlow: stockData.marketCap * 0.08, // Estimated FCF
-    returnOnEquity: 12.5, // Default ROE percentage
-    returnOnAssets: 8.2, // Default ROA percentage
-    debtToEquity: 0.4, // Default debt-to-equity ratio
-    currentRatio: 1.8, // Default current ratio
-    quickRatio: 1.2, // Default quick ratio
-    grossMargin: 35.0, // Default gross margin percentage
-    operatingMargin: 15.0, // Default operating margin percentage
-    netMargin: 8.5, // Default net margin percentage
-    beta: 1.1, // Default beta
-    week52High: stockData.price * 1.25, // Estimated 52-week high
-    week52Low: stockData.price * 0.75, // Estimated 52-week low
-    avgVolume: stockData.volume,
-    sharesOutstanding: Math.floor(stockData.marketCap / stockData.price), // Calculated shares
-    sector: 'Technology', // Default sector
-    industry: 'Software', // Default industry
-    description: `${stockData.companyName} is a publicly traded company.`, // Default description
-    website: `https://www.${stockData.symbol.toLowerCase()}.com`, // Default website
-    ceo: 'Not Available', // Default CEO
-    employees: Math.floor(Math.random() * 50000 + 1000), // Random employee count
-    founded: '1990', // Default founded year
-    headquarters: 'United States' // Default headquarters
+    price: stockData.price,
+    pe: assumedPE,
+    pyEps: previousYearEPS,
+    
+    // Current Year Fields
+    cyEpsLow: cyEpsLow,
+    cyEpsAvg: cyEpsAvg,
+    cyEpsHigh: cyEpsHigh,
+    cyEpsChangePercentLow: cyEpsChangePercentLow,
+    cyEpsChangePercentAvg: cyEpsChangePercentAvg,
+    cyEpsChangePercentHigh: cyEpsChangePercentHigh,
+    cyPeLow: cyPeLow,
+    cyPeAvg: cyPeAvg,
+    cyPeHigh: cyPeHigh,
+    cyPegLow: cyPegLow,
+    cyPegAvg: cyPegAvg,
+    cyPegHigh: cyPegHigh,
+    
+    // Next Year Fields
+    nyEpsLow: nyEpsLow,
+    nyEpsAvg: nyEpsAvg,
+    nyEpsHigh: nyEpsHigh,
+    nyEpsChangePercentLow: nyEpsChangePercentLow,
+    nyEpsChangePercentAvg: nyEpsChangePercentAvg,
+    nyEpsChangePercentHigh: nyEpsChangePercentHigh,
+    nyPeLow: nyPeLow,
+    nyPeAvg: nyPeAvg,
+    nyPeHigh: nyPeHigh,
+    nyPegLow: nyPegLow,
+    nyPegAvg: nyPegAvg,
+    nyPegHigh: nyPegHigh,
   };
 }
 
@@ -105,10 +142,11 @@ export async function fetchStockData(symbol: string): Promise<StockData> {
     console.error(`Error fetching stock data for ${symbol}:`, error);
     
     // Return mock data as fallback
+    const mockPrice = Math.round((Math.random() * 200 + 50) * 100) / 100;
     return {
       symbol: symbol.toUpperCase(),
       companyName: symbol.toUpperCase() + ' Corp',
-      price: Math.round((Math.random() * 200 + 50) * 100) / 100,
+      price: mockPrice,
       change: Math.round((Math.random() * 10 - 5) * 100) / 100,
       changePercent: Math.round((Math.random() * 10 - 5) * 100) / 100,
       volume: Math.floor(Math.random() * 1000000),

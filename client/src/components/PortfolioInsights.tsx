@@ -26,13 +26,15 @@ export default function PortfolioInsights({ companies }: PortfolioInsightsProps)
 
     // Find best growth opportunity
     const bestGrowth = companies.reduce((best, current) => {
-      return current.nyEpsChangePercentAvg > best.nyEpsChangePercentAvg ? current : best;
+      const currentGrowth = current.nyEpsChangePercentAvg || 0;
+      const bestGrowthRate = best.nyEpsChangePercentAvg || 0;
+      return currentGrowth > bestGrowthRate ? current : best;
     }, companies[0]);
 
     insights.push({
       type: "growth",
       title: "Growth Opportunity",
-      message: `${bestGrowth.symbol} shows strong future EPS growth potential with ${(bestGrowth.nyEpsChangePercentAvg || 0).toFixed(0)}% projected increase`,
+      message: `${bestGrowth.symbol} shows strong future EPS growth potential with ${((bestGrowth.nyEpsChangePercentAvg || 0)).toFixed(0)}% projected increase`,
       icon: Lightbulb,
       color: "text-primary",
       bgColor: "bg-primary/5",
@@ -41,14 +43,16 @@ export default function PortfolioInsights({ companies }: PortfolioInsightsProps)
 
     // Find highest P/E ratio for valuation alert
     const highestPE = companies.reduce((highest, current) => {
-      return current.pe > highest.pe ? current : highest;
+      const currentPE = current.pe || 0;
+      const highestPEValue = highest.pe || 0;
+      return currentPE > highestPEValue ? current : highest;
     }, companies[0]);
 
-    if (highestPE.pe > 100) {
+    if ((highestPE.pe || 0) > 100) {
       insights.push({
         type: "warning",
         title: "Valuation Alert",
-        message: `${highestPE.symbol} trading at high P/E ratio of ${(highestPE.pe || 0).toFixed(0)}, monitor for value correction`,
+        message: `${highestPE.symbol} trading at high P/E ratio of ${((highestPE.pe || 0)).toFixed(0)}, monitor for value correction`,
         icon: AlertTriangle,
         color: "text-yellow-800",
         bgColor: "bg-yellow-50",

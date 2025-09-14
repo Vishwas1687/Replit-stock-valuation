@@ -19,7 +19,7 @@ export default function StatsCards({ companies }: StatsCardsProps) {
     },
     {
       title: "Average P/E Ratio",
-      value: metrics.averagePE.toFixed(1),
+      value: isFinite(metrics.averagePE) ? metrics.averagePE.toFixed(1) : '0.0',
       icon: BarChart3,
       color: "text-primary",
     },
