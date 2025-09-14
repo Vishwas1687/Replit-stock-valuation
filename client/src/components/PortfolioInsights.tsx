@@ -32,7 +32,7 @@ export default function PortfolioInsights({ companies }: PortfolioInsightsProps)
     insights.push({
       type: "growth",
       title: "Growth Opportunity",
-      message: `${bestGrowth.symbol} shows strong future EPS growth potential with ${bestGrowth.nyEpsChangePercentAvg.toFixed(0)}% projected increase`,
+      message: `${bestGrowth.symbol} shows strong future EPS growth potential with ${(bestGrowth.nyEpsChangePercentAvg || 0).toFixed(0)}% projected increase`,
       icon: Lightbulb,
       color: "text-primary",
       bgColor: "bg-primary/5",
@@ -48,7 +48,7 @@ export default function PortfolioInsights({ companies }: PortfolioInsightsProps)
       insights.push({
         type: "warning",
         title: "Valuation Alert",
-        message: `${highestPE.symbol} trading at high P/E ratio of ${highestPE.pe.toFixed(0)}, monitor for value correction`,
+        message: `${highestPE.symbol} trading at high P/E ratio of ${(highestPE.pe || 0).toFixed(0)}, monitor for value correction`,
         icon: AlertTriangle,
         color: "text-yellow-800",
         bgColor: "bg-yellow-50",
